@@ -1,0 +1,96 @@
+{% extends "base/default_page.html" %}
+
+{% block body %}
+
+<div class="flex h-screen w-full lg:flex-row flex-col">
+  <div class="flex flex-row items-center w-full h-full justify-center">
+    <img src="../../../static/images/logo-koifish.jpg" width="300" height="300">
+  </div>
+  <div class="w-full flex lg:max-w-2xl p-8 bg-white rounded-md h-full justify-center">
+    <div class="flex flex-col w-full h-full justify-center max-w-lg">
+      <div class=" text-center text-4xl font-medium">
+        ลงชื่อเข้าใช้
+      </div>
+      <form class="mt-8 space-y-6 flex flex-col items-center" method="POST">
+        {{ form.csrf_token }}
+        <label class="form-control w-full max-w-lg">
+          <div class="label max-w-lg">
+            <span class="label-text">ชื่อผู้ใช้</span>
+          </div>
+          <input id=" username" name="username" required class="input input-bordered w-full max-w-lg"
+            placeholder="ชื่อผู้ใช้">
+        </label>
+        <label class="form-control w-full max-w-lg">
+          <div class="label max-w-lg">
+            <span class="label-text">รหัสผ่าน</span>
+          </div>
+          <input id="password" name="password" type="password" required class="input input-bordered w-full max-w-lg"
+            placeholder="รหัสผ่าน">
+        </label>
+        <div class="flex flex-row justify-between w-full max-w-lg">
+          <div class="flex items-center">
+            <input type="checkbox" checked="checked" class="checkbox checkbox-primary rounded h-4 w-4 " id="remember"
+              name="remember" />
+            <label class="ml-2 block text-gray-900">คงสถานะการเข้าสู่ระบบเอาไว้</label>
+          </div>
+          <div>
+            <a href="{{ url_for('accounts.forgot_password') }}" class="text-primary">ลืมรหัสผ่าน?</a>
+          </div>
+        </div>
+
+        {#}
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input type="checkbox" onclick="checkboxToggle()"
+              class="checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+            <label class="ml-2 block text-sm text-gray-900">Show Password</label>
+          </div>
+        </div>
+        {#}
+        {% if error_msg %}
+        <div class="alert flex flex-row w-full alert-error text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{{ error_msg }}</span>
+        </div>
+        {% endif %}
+        <div class="w-full flex justify-center">
+          <button type="submit"
+            class="btn btn-primary text-white group relative flex w-full justify-center rounded-md max-w-lg">
+            ลงชื่อเข้าใช้งาน
+          </button>
+        </div>
+      </form>
+      {#
+      <div class="divider py-6 w-full">หรือ</div>
+      <div class="w-full flex justify-center">
+        <a class="btn  group relative flex w-full justify-center rounded-md max-w-lg">
+          ลงทะเบียน
+        </a>
+      </div>
+    </div>
+    #}
+  </div>
+</div>
+{% set error_msg = "" %}
+{% endblock body %}
+
+{% block additional_js %}
+<script>
+  var clicked = 0;
+  password = document.getElementById("password");
+  function checkboxToggle() {
+    if (clicked == 0) {
+      password.type = "text";
+      clicked = 1;
+    }
+    else if (clicked == 1) {
+      password.type = "password";
+      clicked = 0;
+    }
+  }
+</script>
+{% endblock additional_js %}
