@@ -1,0 +1,57 @@
+{% extends "base/default_page.html" %}
+{% from "components/breadcrumbs.html" import render_breadcrumbs %}
+{% import "components/forms/select_input.html" as render_select_input %}
+{% import "components/forms/text_input.html" as render_text_input %}
+{% import "components/modals.html" as render_modal %}
+
+
+{% set page_name = "แก้ไขผู้ใช้งาน" if "edit" in
+request.path else "เพิ่มผู้ใช้งาน" %}
+
+{% set links = [ ("ตั้งค่าบทบาทผู้ใช้", url_for("accounts.user_index")),
+("แก้ไขผู้ใช้งาน" if "edit" in request.path else "เพิ่มผู้ใช้งาน", "") ] %}
+
+{% set breadcrumbs = render_breadcrumbs(links) %}
+
+{% block content %}
+{{ render_modal.ModalUploadError(errors) }}
+{{ render_modal.ModalComplete(completed, url_for('accounts.user_index') ) }}
+<form method="post" enctype="multipart/form-data">
+  <div class="flex flex-col bg-white px-4 rounded my-2 py-4 md:max-w-none max-w-full md:justify-normal justify-center">
+    <div class="sm:grid lg:grid-cols-4 grid-cols-2 flex flex-wrap items-end max-md:justify-center gap-4 w-full">
+      {{ form.csrf_token }}
+      {{ render_text_input.TextInput(form.first_name) }}
+      {{ render_text_input.TextInput(form.last_name) }}
+      {{ render_text_input.TextInput(form.email) }}
+      {{ render_text_input.TextInput(form.phone) }}
+      {{ render_text_input.TextInput(form.username) }}
+      {{ render_text_input.TextInput(form.roles) }}
+    </div>
+  </div>
+  {% if error_msg %}
+  <div class="alert alert-error" style="width: 18%;text-align: center ;margin: auto;margin-top : 2%;">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ error_msg }}</span>
+  </div>
+  {% endif %}
+  <div class="flex md:flex-row flex-col justify-end gap-4 my-6 mt-4">
+    <a href="{{ url_for('accounts.user_index') }}" class="btn min-w-52">กลับ</a>
+    <button class="btn btn-primary text-white min-w-52">บันทึก</button>
+  </div>
+</form>
+<h1 class="text-red-500 font-bold text-3xl my-2">
+  หมายเหตุ รหัสผ่านของผู้ใช้ใหม่
+</h1>
+<div class="grid lg:grid-cols-2 grid-cols-1 gap-4">
+  <ul class="list-disc ml-6 space-y-2">
+    <li><b>รหัสผ่าน</b> <span class="text-red-500"></span>
+      <br>- รหัสผ่านของผู้ใช้ใหม่จะตรงกับข้อมูล เบอร์โทรศัพท์ ที่กรอกไว้ในครั้งแรก
+      <br>- สามารถเปลี่ยนรหัสผ่านได้เมื่อผ่านการ Login ครั้งแรก
+    </li>
+
+  </ul>
+</div>
+{% endblock %}

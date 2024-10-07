@@ -1,0 +1,3 @@
+#!/bin/sh
+
+DEBUG=true poetry run koifish-web -H 0.0.0.0 -d

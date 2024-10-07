@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+# OSOD_SETTINGS=$(pwd)/app.dev.cfg osod-worker
+koifish-worker

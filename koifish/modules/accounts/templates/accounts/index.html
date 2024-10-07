@@ -1,0 +1,133 @@
+{% extends "base/default_page.html" %}
+{% from "components/breadcrumbs.html" import render_breadcrumbs %}
+{% from "components/paginations.html" import render_pagination %}
+{% import "components/forms/select_input.html" as render_select_input %}
+{% import "components/forms/text_input.html" as render_text_input %}
+{% from "components/modals.html" import render_modal_link %}
+
+
+{% set page_name = "ตั้งค่าบทบาทผู้ใช้"%}
+
+{% set links = [ ("ตั้งค่าบทบาทผู้ใช้", "") ] %}
+
+{% set breadcrumbs = render_breadcrumbs(links) %}
+
+{% block content %}
+<form method="get">
+  <div class="flex bg-white px-4 my-2 py-8 w-full justify-center shadow-xl rounded-2xl mb-6">
+    <div class="sm:grid lg:grid-cols-4 grid-cols-2 flex flex-wrap items-end max-md:justify-center gap-4 w-full">
+      {{ render_text_input.TextInput(form.first_name) }}
+      {{ render_text_input.TextInput(form.last_name) }}
+      {{ render_select_input.SelectInput(form.roles) }}
+      {{ render_text_input.TextInput(form.email) }}
+      <div class="gap-4 flex sm:w-auto w-full sm:flex-nowrap flex-wrap">
+        <a href="{{ url_for('accounts.user_index') }}" class="btn px-2 max-sm:w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="currentColor"
+              d="M12 22q-1.875 0-3.512-.712t-2.85-1.925t-1.925-2.85T3 13h2q0 2.925 2.038 4.963T12 20t4.963-2.037T19 13t-2.037-4.962T12 6h-.15l1.55 1.55L12 9L8 5l4-4l1.4 1.45L11.85 4H12q1.875 0 3.513.713t2.85 1.925t1.925 2.85T21 13t-.712 3.513t-1.925 2.85t-2.85 1.925T12 22" />
+          </svg>
+        </a>
+        <button class="btn btn-primary text-white px-2 max-sm:w-full" type="submit">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+            <path fill="currentColor"
+              d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<div class="flex md:flex-row-reverse flex-col gap-4 mb-4">
+  <a class="btn btn-primary w-48 text-white m-1 gap-3 shadow-2xl text-center rounded-full"
+    href="{{ url_for('accounts.user_create_or_edit') }}">เพิ่มผู้ใช้งาน</a>
+</div>
+
+<div class="rounded-3xl mb-6 py-4 md:max-w-full">
+  <div class="overflow-x-auto block ">
+    <table class="table text-center overflow-y-auto">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="text-left"> ชื่อ-นามสกุล</th>
+          <th class="text-left"> อีเมล</th>
+          <th> วันที่ลงทะเบียน</th>
+          <th> บทบาทผู้ใช้</th>
+          <th> เพิ่มเติม</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        {% for user in paginated_users.items %}
+        <tr class="hover">
+          <th>{{ loop.index + ( ( paginated_users.page - 1 ) * paginated_users.per_page ) }}</th>
+          <td class="text-left"> {{ user.get_fullname() }}</td>
+          <td class="text-left"> {{ user.email if user.email else "" }}</td>
+          <td> {{ user.created_date.strftime("%d/%m/%Y") }}</td>
+          <td> {{ user.display_roles() }}</td>
+          <td class="p-3 text-sm whitespace-nowrap text-center">
+            <div class="flex flex-row justify-center">
+              <div class="tooltip" data-tip="แก้ไข">
+                <a href="{{ url_for('accounts.user_create_or_edit', user_id=user.id) }}"
+                  class="btn btn-ghost btn-circle btn-sm text-white m-auto text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-4 text-black text-center">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                  </svg>
+                </a>
+              </div>
+              <div class="tooltip" data-tip="ลบ">
+                <!-- The button to open modal -->
+                <button class="btn btn-ghost btn-sm text-white btn-circle m-auto text-center"
+                  onclick="my_modal_{{ user.id }}.showModal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-4 text-black text-center">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  </svg>
+                </button>
+                <!-- Put this part before </body> tag -->
+                <dialog id="my_modal_{{ user.id }}" class="modal">
+                  <div class="modal-box">
+                    <h3 class="font-bold text-lg text-error">
+                      แจ้งเตือน !
+                    </h3>
+                    <p class="py-4">
+                      ยืนยันการลบข้อมูล
+                    </p>
+                    <div class="modal-action">
+                      <form method="dialog">
+                        <button class="btn">
+                          ยกเลิก
+                        </button>
+                      </form>
+                      <a href="{{ url_for('accounts.user_delete', user_id=user.id) }}"
+                        class="btn btn-primary text-white">
+                        ตกลง
+                      </a>
+                    </div>
+                  </div>
+                </dialog>
+              </div>
+          </td>
+        </tr>
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
+  {% set parameters = dict(request.args) %}
+  {% if 'page' in parameters %}
+  {% set _dummy=parameters.pop('page') %}
+  {% endif %}
+
+  {% if paginated_users.items %}
+  {{ render_pagination(paginated_users,"accounts.user_index", parameters) }}
+  {% else %}
+  <div class="flex w-full justify-center my-4 text-sm"> <span>ไม่พบข้อมูล</span> </div>
+  {% endif %}
+</div>
+
+{% endblock %}

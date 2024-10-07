@@ -1,0 +1,14 @@
+/venv
+/env
+**/static/dist/
+*.pyc
+*.cfg
+__pycache__
+node_modules
+package-lock.json
+**/static/public/
+*.egg-*
+.vscode
+.env
+*.csv
+*.mp4

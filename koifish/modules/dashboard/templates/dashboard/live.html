@@ -1,0 +1,296 @@
+{% extends "base/default_page.html" %}
+
+
+{% block body %}
+<div class="navbar text-white" style="background-color: #46545C;">
+  <div class="flex-1">
+    <a class="btn btn-ghost text-xl">KoikingInsight | LIVE</a>
+  </div>
+  <div class="flex-none">
+    <a class="btn btn-square btn-ghost" href="{{ url_for('dashboard.index') }}">
+        GO SUMMARY
+    </a>
+  </div>
+</div>
+<div class="grid grid-cols-2 p-8 gap-8">
+
+  <div id='heatmap-graph' class="col-span-1"></div>
+  <div id="scatter-graph" class="col-span-1"></div>
+
+</div>
+<div class="w-full px-8">
+  <div id='line_graph'></div>
+</div>
+
+{% endblock %}
+
+{% block additional_js %}
+<script src='https://cdn.plot.ly/plotly-2.35.2.min.js'></script>
+<script>
+
+</script>
+<script>
+  var imageURL 
+  var imageScatterURL
+  var image
+  var imageScatter
+  
+  var averaged_A = []
+  var averaged_B = []
+  var averaged_C = []
+
+  var averaged_X = []
+  var averaged_Y = []
+  var fish_name
+
+  var heatmap_data
+  var xedges
+  var yedges 
+
+  function fetchDataFromRedis() {
+    // Fetch the image from the server
+    fetch('http://localhost:8000/api/koifish/get_lastest_data')
+        .then(response => {
+            if (response.ok) {
+                // Get the image URL as a blob
+                return response.json();
+            } else {
+                throw new Error('Failed to fetch image');
+            }
+        })
+        .then(data_from_redis => {
+          averaged_A = data_from_redis["averaged_A"]
+          averaged_B = data_from_redis["averaged_B"]
+          averaged_C = data_from_redis["averaged_C"]
+        
+          averaged_X = data_from_redis["averaged_X"]
+          averaged_Y = data_from_redis["averaged_Y"]
+          fish_name = data_from_redis["fish_name"]
+        
+          heatmap_data = data_from_redis["heatmap_data"]
+          xedges = data_from_redis["xedges"]
+          yedges = data_from_redis["yedges"]
+          imageURL = data_from_redis["image"]
+          imageScatterURL = data_from_redis["image_scatter"]
+        })
+        .catch(error => {
+            console.error('Error fetching image:', error);
+        });
+  } 
+
+
+  function fetchImage() {
+
+    fetch(imageURL)
+        .then(response => {
+            if (response.ok) {
+                // Get the image URL as a blob
+                return response.blob();
+            } else {
+                throw new Error('Failed to fetch image');
+            }
+        })
+        .then(imageBlob => {
+            // Create a URL for the blob and set it as the source for the image
+            image = URL.createObjectURL(imageBlob);
+        })
+        .catch(error => {
+            console.error('Error fetching image:', error);
+        });
+  }
+
+  function fetchImageScatter() {
+
+    fetch(imageScatterURL)
+        .then(response => {
+            if (response.ok) {
+                // Get the image URL as a blob
+                return response.blob();
+            } else {
+                throw new Error('Failed to fetch image');
+            }
+        })
+        .then(imageBlob => {
+            // Create a URL for the blob and set it as the source for the image
+            imageScatter = URL.createObjectURL(imageBlob);
+        })
+        .catch(error => {
+            console.error('Error fetching image:', error);
+        });
+  }
+
+  setInterval(fetchDataFromRedis, 1000);
+  setInterval(fetchImage, 1000);
+  setInterval(fetchImageScatter, 1000);
+
+
+</script>
+<script>
+  var layout_heatmap = {
+    title: 'แผนภาพแสดง Heatmap ผลรวมตำแหน่งของปลา',
+    images: [
+      {
+        source: '../../../static/images/bg_fish.png',
+        xref: 'paper',
+        yref: 'paper',
+        x: 0,
+        y: 1,
+        sizex: 1,
+        sizey: 1,
+        sizing: 'stretch',
+        opacity: 1,
+        layer: 'below'
+      }
+    ],
+    margin: {
+      l: 50,
+      r: 50,
+      b: 50,
+      t: 50
+    },
+  };
+  var layout_line_graph = {
+    title: 'กราฟแสดงข้อมูลของปลาที่ว่ายอยู่ในแต่ละบริเวณในทุกๆ ช่วงวินาทีที่เลือก',
+  }
+
+  var layout_scatter = {
+    title: 'กราฟแสดงข้อมูลของปลาที่ว่ายอยู่ในแต่ละบริเวณในทุกๆ วินาที',
+    images: [
+      {
+        source: '',
+        xref: 'paper',
+        yref: 'paper',
+        x: 0,
+        y: 1,
+        sizex: 1,
+        sizey: 1,
+        sizing: 'stretch',
+        opacity: 1,
+        layer: 'below'
+      }
+    ],
+    margin: {
+      l: 50,
+      r: 50,
+      b: 50,
+      t: 50,
+    },
+    yaxis: {
+      range: [0, 960],
+      tickvals: [0, 200, 400, 600, 800],
+      ticktext: ['0', '200', '400', '600', '800'],
+      fixedrange: true,
+      autorange: 'reversed',
+      showgrid: false,
+    },
+    xaxis: {
+      range: [0, 1280],
+      tickvals: [0, 200, 400, 600, 800, 1000, 1200],
+      ticktext: ['0', '200', '400', '600', '800', '1000', '1200'],
+      fixedrange: true,
+      showgrid: false,
+    },
+    dragmode: false,
+  };
+
+  function fetchDataAndUpdate() {
+    // Fetch the latest data including background image URL
+    fetch('http://localhost:8000/api/koifish/get_lastest_data')
+      .then(response => response.json())
+      .then(data_from_redis => {
+        // Update heatmap
+        var heatmap_update = {
+          z: heatmap_data,
+          x: xedges,
+          y: yedges
+        };
+
+        Plotly.react('heatmap-graph', [{
+          z: heatmap_update.z,
+          x: heatmap_update.x,
+          y: heatmap_update.y,
+          type: 'heatmap',
+          hoverongaps: false,
+          opacity: 0.7,
+          colorscale: 'Inferno'
+        }], layout_heatmap);
+
+        // Update line graph
+        var line_update = [
+          {
+            y: averaged_A
+          },
+          {
+            y: averaged_B
+          },
+          {
+            y: averaged_C
+          }
+        ];
+
+        Plotly.react('line_graph', [
+          {
+            x: Array.from({ length: line_update[0].y.length }, (_, i) => i + 1),
+            y: line_update[0].y,
+            type: 'scatter',
+            name: 'A Area'
+          },
+          {
+            x: Array.from({ length: line_update[1].y.length }, (_, i) => i + 1),
+            y: line_update[1].y,
+            type: 'scatter',
+            name: 'B Area'
+          },
+          {
+            x: Array.from({ length: line_update[2].y.length }, (_, i) => i + 1),
+            y: line_update[2].y,
+            type: 'scatter',
+            name: 'C Area'
+          }
+        ], layout_line_graph);
+
+        // Update scatter plot
+        var scatter_update = {
+          x: [],
+          y: []
+        };
+
+        Plotly.react('scatter-graph', [{
+          x: scatter_update.x,
+          y: scatter_update.y,
+          mode: 'markers',
+          type: 'scatter',
+          name: 'Koi Fish',
+          text: fish_name,
+          marker: {
+            size: 10,
+            color: 'rgb(255, 0, 0)'
+          }
+        }], layout_scatter);
+
+        // Update background images
+        var new_image_url = image
+        var new_image_scatter_url = imageScatter
+
+        // Update the heatmap background image
+        Plotly.relayout('heatmap-graph', {
+          'images[0].source': new_image_url
+        });
+
+        // Update the scatter background image
+        Plotly.relayout('scatter-graph', {
+          'images[0].source': new_image_scatter_url
+        });
+
+        console.log('Data and graphs updated');
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }
+
+  // Fetch and update every second
+  setInterval(fetchDataAndUpdate, 1000);
+
+</script>
+
+
+{% endblock %}
