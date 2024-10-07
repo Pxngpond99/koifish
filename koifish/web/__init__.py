@@ -16,7 +16,7 @@ def create_app():
 
     config = dotenv_values(".env")
     app.config.update(config)
-    # env_file_name = ".env"
+    env_file_name = ".env"
     # dotenv.load_dotenv(dotenv_path=env_file_name)
 
     models.init_db(app)

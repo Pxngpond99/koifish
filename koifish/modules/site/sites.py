@@ -6,4 +6,7 @@ module = Blueprint("site", __name__)
 
 @module.route("/")
 def index():
-    return redirect(url_for("dashboard.index"))
+    if not current_user.is_authenticated:  # ถ้ายังไม่ login
+        return redirect(url_for("accounts.login"))
+    else:
+        return redirect(url_for("dashboard.index"))
